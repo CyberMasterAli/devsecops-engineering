@@ -1,0 +1,79 @@
+name: Week 2 Security Checks
+
+on:
+  push:
+    branches:
+      - main
+      - "docs/**"
+      - "feature/**"
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  secure-code-check:
+    name: Secure Code Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Display Python version
+        run: python --version
+
+      - name: Compile Python source
+        run: python -m py_compile src/week-2/secure_app.py
+
+      - name: Run security unit tests
+        working-directory: src/week-2
+        run: python -m unittest -v
+
+      - name: Check prohibited secret files
+        shell: bash
+        run: |
+          prohibited_files=$(git ls-files | grep -E '(^|/)(\.env|secrets\.json|credentials\.json)$' || true)
+
+          if [ -n "$prohibited_files" ]; then
+            echo "Prohibited secret files were found:"
+            echo "$prohibited_files"
+            exit 1
+          fi
+
+          echo "No prohibited secret files are tracked."
+
+      - name: Scan for common hard-coded secret patterns
+        shell: bash
+        run: |
+          if grep -RInE \
+            --exclude-dir=.git \
+            --exclude="*.md" \
+            --exclude=".env.example" \
+            '(password|api_key|secret|token)[[:space:]]*=[[:space:]]*["'\''][^"'\'']{8,}["'\'']' \
+            .; then
+            echo "Possible hard-coded secret detected."
+            exit 1
+          fi
+
+          echo "No obvious hard-coded secret pattern detected."
+
+      - name: Verify GitHub secret availability
+        env:
+          DEMO_API_KEY: ${{ secrets.DEMO_API_KEY }}
+        shell: bash
+        run: |
+          if [ -z "$DEMO_API_KEY" ]; then
+            echo "DEMO_API_KEY is not configured."
+            exit 1
+          fi
+
+          echo "DEMO_API_KEY is configured securely." 
