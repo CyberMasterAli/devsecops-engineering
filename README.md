@@ -50,3 +50,34 @@ flowchart LR
     F --> G[Pull Request]
     G --> H[Review]
     H --> I[Merge into Main]
+
+
+
+
+    ## Week 2 — Secure Coding, Secret Management and Automation
+
+Week 2 focuses on integrating security controls into source code and the
+development workflow.
+
+### Completed Tasks
+
+- Implemented input validation
+- Added secure exception handling
+- Generated cryptographically secure tokens
+- Loaded credentials from environment variables
+- Protected `.env` and credential files through `.gitignore`
+- Configured a GitHub Actions repository secret
+- Added automated security unit tests
+- Created a GitHub Actions security workflow
+- Created a PowerShell Git automation script
+
+### Week 2 Files
+
+- `docs/week-2/01-secure-coding-practices.md`
+- `docs/week-2/02-secret-management.md`
+- `docs/week-2/03-automation.md`
+- `docs/week-2/04-daily-work-log.md`
+- `src/week-2/secure_app.py`
+- `src/week-2/test_secure_app.py`
+- `.github/workflows/security-check.yml`
+- `scripts/auto-push.ps1`
