@@ -81,3 +81,4 @@ development workflow.
 - `src/week-2/test_secure_app.py`
 - `.github/workflows/security-check.yml`
 - `scripts/auto-push.ps1`
+
