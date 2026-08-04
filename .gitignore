@@ -13,6 +13,7 @@ __pycache__/
 venv/
 .venv/
 env/
+.security-tools/
 
 # IDE and operating-system files
 .vscode/
@@ -33,3 +34,6 @@ Thumbs.db
 config.local.*
 secrets.*
 credentials.*
+
+# Security tool cache
+.pip-audit-cache/
