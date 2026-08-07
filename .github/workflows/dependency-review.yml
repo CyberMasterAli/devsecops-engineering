@@ -1,7 +1,10 @@
-﻿name: Dependency Review
+﻿@'
+name: Dependency Review
 
 on:
   pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -13,9 +16,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Review dependency changes
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: moderate
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 120
+'@ | Set-Content -Encoding utf8 .\.github\workflows\dependency-review.yml
