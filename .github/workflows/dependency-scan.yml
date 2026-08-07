@@ -1,0 +1,36 @@
+﻿name: Dependency Security Scan
+
+on:
+  push:
+    branches:
+      - main
+      - week4-dependency-scanning
+    paths:
+      - "src/week-4/**"
+      - ".github/workflows/dependency-scan.yml"
+
+  pull_request:
+    paths:
+      - "src/week-4/**"
+      - ".github/workflows/dependency-scan.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pip-audit:
+    name: Scan Python dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Audit Python dependencies
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: src/week-4/requirements.txt
+          no-deps: true
+          summary: true
