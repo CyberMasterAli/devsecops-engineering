@@ -1,0 +1,120 @@
+name: Week 5 - Secure CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - week-5-cicd
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: week5-cicd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  validation:
+    name: Repository Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate Python source code
+        run: |
+          python -m compileall src
+
+
+  security:
+    name: Security Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bandit pip-audit
+
+      - name: Run Bandit SAST security scan
+        run: |
+          bandit src/week-2/secure_app.py src/week-3/fixed_app.py src/week-4/app.py -ll
+
+      - name: Run dependency vulnerability scan
+        run: |
+          pip-audit -r src/week-4/requirements.txt
+
+
+  policy:
+    name: CI-CD Policy Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check for tracked environment files
+        shell: bash
+        run: |
+          if git ls-files | grep -Eq '(^|/)\.env$'; then
+            echo "::error::.env file must not be tracked by Git."
+            exit 1
+          fi
+
+          echo "PASS: No .env files are tracked."
+
+
+  deploy-staging:
+    name: Secure Staging Deployment
+    needs:
+      - validation
+      - security
+      - policy
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    environment:
+      name: staging
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Simulated staging deployment
+        run: |
+          echo "All CI security gates passed."
+          echo "Deployment to staging authorized."
+          echo "Week 5 secure CI/CD deployment successful."
