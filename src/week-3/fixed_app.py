@@ -8,6 +8,11 @@ This file demonstrates remediation of common security issues.
 import os
 import subprocess
 import secrets
+import logging
+
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 # ----------------------------------------
@@ -19,17 +24,26 @@ PASSWORD = os.getenv("APP_PASSWORD", "")
 
 # ----------------------------------------
 # Safe Directory Listing
-# No shell=True
+# No shell=True - prevents command injection
 # ----------------------------------------
 def list_files(directory):
     try:
-        subprocess.run(
-            ["dir", directory],
-            shell=True if os.name == "nt" else False,
-            check=True,
-        )
-    except Exception as error:
-        print(f"Error: {error}")
+        if os.name == "nt":
+            subprocess.run(
+                ["cmd", "/c", "dir", directory],
+                shell=False,
+                check=True,
+            )
+        else:
+            subprocess.run(
+                ["ls", "-la", directory],
+                shell=False,
+                check=True,
+            )
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Error listing files: {error}")
+    except ValueError as error:
+        logger.error(f"Invalid directory: {error}")
 
 
 # ----------------------------------------
@@ -49,7 +63,8 @@ def calculate(expression):
 
         return first + second
 
-    except Exception:
+    except (ValueError, AttributeError) as error:
+        logger.error(f"Calculation error: {error}")
         return "Invalid Expression"
 
 
