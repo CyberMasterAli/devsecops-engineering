@@ -1,0 +1,31 @@
+name: Container Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  container-scan:
+    name: Build and Scan Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          cd src/week-6
+          docker build -t devsecops-app:${{ github.sha }} .
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'devsecops-app:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1' # Fails the pipeline if vulnerabilities are found
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
